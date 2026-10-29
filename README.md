@@ -1,28 +1,27 @@
 # AKS on Azure with Terraform, Helm and GitHub Actions
-Lab environment for Azure Kubernetes, Helm, Terraform &amp; Github Actions
+Lab environment for Azure Kubernetes, Helm, Terraform &amp; GitHub Actions
 
-I'm familiar with Azure, Entra, and have some knowledge on AKS & Terraform, despite not using them at work. Helm wasn't something I had heard of until today!
-I built this lab to get hands on with Azure Kubernetes Service, Terraform and Helm before an interview for a Cloud Engineer role. I used Terraform to build a Kubernetes cluster in Azure, deployed an app to it with Helm, and set up GitHub Actions to check every change automatically. It wasn't smooth sailing the whole way though.
+My background is Entra ID, Azure administration, Intune and PowerShell / Graph automation. AKS, Terraform and Helm aren't used where I work, so I built this lab to get hands-on with them before an interview for a Cloud Engineer role.
+
+I used Terraform to build a Kubernetes cluster in Azure, deployed an app to it with Helm, and set up GitHub Actions to check every change automatically. It wasn't smooth sailing the whole way though.
 
 ## Summary
 
 - **Terraform** deploys a resource group, VNet, subnet and a small **AKS cluster** (free tier, 1 node). I stored the state remotely in Azure Storage using my Entra login rather than a storage account key.
-- **Kubernetes:** I deployed podinfo twice: first with plain manifests so I understood the basics, then with a **Helm chart** and my own `values.yaml`. I manually scaled it, deleted a pod to see the self healing, checked logs, and did a Helm upgrade and a one command rollback to see what Helm was about.
+- **Kubernetes:** I deployed podinfo twice: first with plain manifests so I understood the basics, then with a **Helm chart** and my own `values.yaml`. I manually scaled it, deleted a pod to see the self-healing, checked logs, and did a Helm upgrade and a one command rollback to see what Helm was about.
 - **GitHub Actions** runs `fmt`, `validate` and `plan` on every PR. It logs in to Azure with **OIDC, so there are no secrets stored anywhere**, and the pipeline only has the access it needs. On its first run it caught a real problem in my code, which I fixed.
 - **Problems along the way:** VM quota, AKS supported VM sizes, a plan file committed by mistake, an OIDC subject mismatch, and missing permissions for the pipeline.
 
 ### Where I started
 
-- **Terraform:** I had heard of it and understood what it is, but had never used it or seen it in action.
+- **Terraform:** I'd only used it briefly in my home lab, and not for a production deployment.
 - **Kubernetes:** I get the premise and why it's useful, but it isn't used in my current workplace, so my exposure was limited to single containers in my home lab.
-- **Helm:** I'd never heard of it.
-
-My background is Microsoft 365, Entra ID, Intune, networking and PowerShell / Graph automation, as well as Azure infrastructure maintenaince and RBAC/IAM roles.
+- **Helm:** No prior knowledge
 
 ## What I learned
 
 - How Terraform plans and applies changes, and why its state file needs protecting.
-- That a VM size has to be be allowed by AKS before you can use it.
+- That a VM size has to be allowed by AKS before you can use it.
 - How Kubernetes keeps apps running by replacing pods itself.
 - What Helm is, and how it makes upgrades and rollbacks one command.
 - How to let GitHub log in to Azure with no stored secrets, and give it only the access it needs.
@@ -45,7 +44,7 @@ My background is Microsoft 365, Entra ID, Intune, networking and PowerShell / Gr
 
 ## 1. Building the infrastructure with Terraform
 
-Terraform needs somewhere to keep its state, but it can't create the storage it keeps its own state in. So my bootstrap script (`bootstrap-state.ps1`) creates the storage account once with the az CLI, in its own resource group so that destroying the lab never deletes the state. I've worked in the Az CLI for AZ104, but day to day I'd normally use the Portal. Now that it’s scripted with variables, it’s easily and quickly repeatable, and the variables can be adjusted when it’s run.
+Terraform needs somewhere to keep its state, but it can't create the storage it keeps its own state in. So my bootstrap script (`bootstrap-state.ps1`) creates the storage account once with the az CLI, in its own resource group so that destroying the lab never deletes the state. I've worked in the AZ CLI whilst stufying for the AZ104, but day to day I'd normally use the Portal. Now that it’s scripted with variables, it’s easily and quickly repeatable, and the variables can be adjusted when it’s run.
 
 I ran `fmt` and `validate` after every change and reviewed the plan before every apply:
 
@@ -85,10 +84,10 @@ That's manual scaling. In production I'd use autoscaling. `kubectl scale` only c
 
 ## 3. Helm
 
-I'd never heard of Helm until this project. It packages all the YAML for an app into a 'chart', and you only override the settings you care about. My `values.yaml` has five overrides; everything else comes from the chart's defaults.
-This time, we have a custom color, and a different version.
+It packages all the YAML for an app into a 'chart', and you only override the settings you care about. My `values.yaml` has five overrides; everything else comes from the chart's defaults.
+This time, I have a custom color set, and a different version.
 
-I installed an older version on purpose to test it, then upgraded, then rolled back. The rollback was fast, just one command, and we can see the histroy Helm keeps:
+I installed an older version on purpose to test it, then upgraded, then rolled back. The rollback was fast, just one command, and I can see the history Helm keeps:
 
 ![podinfo deployed with Helm and my own values](docs/images/podinfo-helm.png)
 
