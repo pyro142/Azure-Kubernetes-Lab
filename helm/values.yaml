@@ -1,0 +1,17 @@
+replicaCount: 2
+
+ui:
+  message: "Deployed to AKS with Terraform + Helm"
+  color: "#2b5797"
+
+service:
+  type: LoadBalancer
+  externalPort: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
