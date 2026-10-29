@@ -53,3 +53,17 @@ resource "azurerm_kubernetes_cluster" "main" {
 
   tags = var.tags
 }
+
+  default_node_pool {
+    name            = "system"
+    vm_size         = var.node_vm_size
+    node_count      = var.node_count
+    vnet_subnet_id  = azurerm_subnet.aks.id
+    os_disk_size_gb = 30
+
+    upgrade_settings {
+      max_surge                     = "10%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
+}
